@@ -1,6 +1,8 @@
 import mongoose, { mongo } from "mongoose"
+import dotenv from 'dotenv';
+dotenv.config();
 
-mongoose.connect("mongodb://localhost:27017/").then(()=>{
+mongoose.connect(process.env.MONGO_URL as string).then(()=>{
     console.log("Database Connected");
 })
 
