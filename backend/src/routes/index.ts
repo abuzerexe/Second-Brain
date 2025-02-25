@@ -1,10 +1,11 @@
 import express, { Router } from "express"
 import { signinSchema, signupSchema } from "../zod/zod";
-import { Content, Tags, Users } from "../db";
+import { Content, Link, Tags, Users } from "../db";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import userMiddleware from "../middlewares";
 import { NextFunction, Request, Response } from "express";
+import hashify from "../utilis";
 
 
 async function populatingTagDb(){
@@ -36,16 +37,27 @@ enum ResponseStatus {
 
 router.post('/signup',async (req,res) => {
     const body = req.body
-    const result = signupSchema.safeParse(body);
+
+    const username = body.username;
+    const password = body.password;
+    const name = body.name;
+
+    const result = signupSchema.safeParse({
+        username,
+        password,
+        name
+    });
 
     if(!result.success){
-        console.log(result)
-         res.status(ResponseStatus.InputError).json(result.error.issues[0].message)
+         res.status(ResponseStatus.InputError).json({
+            path : result.error.issues[0].path,
+            reason : result.error.issues[0].message
+         })
          return
     }
 
     const existingUser = await Users.findOne({
-        username : body.username
+        username 
     }) 
 
     if(existingUser){
@@ -55,9 +67,7 @@ router.post('/signup',async (req,res) => {
         return
     }
 
-    const username = body.username;
-    const password = body.password;
-    const name = body.name;
+
 
     const hashedpassword = await bcrypt.hash(password,5)
 
@@ -92,7 +102,13 @@ router.post('/signup',async (req,res) => {
 router.post("/signin",async (req,res)=>{
     const body = req.body;
 
-    const result = signinSchema.safeParse(body)
+    const username = body.username;
+    const password = body.password;
+
+    const result = signinSchema.safeParse({
+        username,
+        password
+    })
 
     if(!result.success){
         res.status(ResponseStatus.InputError).json({
@@ -102,7 +118,7 @@ router.post("/signin",async (req,res)=>{
     }
 
     const response = await Users.findOne({
-        username : body.username
+        username 
     })
 
     if(!response){
@@ -112,7 +128,7 @@ router.post("/signin",async (req,res)=>{
         return
     }else{
     
-        const passwordMatch = await bcrypt.compare(body.password,response.password)
+        const passwordMatch = await bcrypt.compare(password,response.password)
 
         if(passwordMatch){
             
@@ -179,7 +195,7 @@ router.get("/content",userMiddleware,async(req,res)=>{
 
  const contents = await Content.find({
         userId
-    }).populate("tags")
+    }).populate("tags","title")
 
     res.json({
         content : contents
@@ -234,6 +250,110 @@ try{
     return
 }
    
+})
+
+
+router.post("/brain/sharebrain", userMiddleware, async(req,res)=>{
+
+    const share = req.body.share;
+
+try{
+
+    if(share){    
+
+        const existingLink = await Link.findOne({
+            userId : req.userId
+        })
+    
+        if(existingLink){    
+            res.json({
+                message : "Your Second brain is public.",
+                link : "/share/" + existingLink.hash
+            })
+            return;
+        }
+
+    const link = await Link.create({
+                    userId : req.userId,
+                    hash : hashify(15)
+                })
+
+        res.json({
+            message : "Your Second brain is now public.",
+            link : "/share/" + link.hash
+        })
+        return
+
+    }else{
+        await Link.deleteOne({
+            userId : req.userId
+        })
+
+        res.json({
+            message : "Your Second brain is now private.",
+        })
+        return
+
+    }
+}catch(e:any){
+   
+    res.status(ResponseStatus.ServerError).json(
+        e.message
+    )
+    return
+}
+})
+
+router.get("/brain/share/check",userMiddleware,async(req,res)=>{
+
+    const check = await Link.findOne({
+        userId : req.userId
+    })
+
+    if(check){    
+        res.json({
+            message : "Your Second brain is public.",
+            link : check.hash
+        })
+        return;
+    }else{
+        res.json({
+            message : "Your Second brain is private.",
+        })
+        return;
+    }
+})
+
+router.get("/brain/share/:sharelink",async(req,res)=>{
+
+    const shareLink = req.params.sharelink;
+
+    const link = await Link.findOne({
+        hash : shareLink
+    })
+
+    if(!link){
+        res.status(ResponseStatus.InputError).json({
+            message : "No second brain of this link exist."
+        })
+        return
+    }
+
+    const content = await Content.findOne({
+        userId : link.userId
+    })
+
+    const user = await Users.findOne({
+        _id : link.userId
+    })
+
+    res.json({
+        //@ts-ignore
+        username : user.username,
+         //@ts-ignore
+        content : content
+    })
+
 
 
 })
