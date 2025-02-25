@@ -58,13 +58,13 @@ const ContentSchema = new mongoose.Schema({
     userId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Users',
-        required : true,
-        validate: async function(value: mongoose.Types.ObjectId | String) {
-            const user = await Users.findById(value);
-            if (!user) {
-              throw new Error('User does not exist');
-            }
-          }
+        required : true
+    //     validate: async function(value: mongoose.Types.ObjectId | String) {
+    //         const user = await Users.findById(value);
+    //         if (!user) {
+    //           throw new Error('User does not exist');
+    //         }
+    //       }
     }
 
 })
