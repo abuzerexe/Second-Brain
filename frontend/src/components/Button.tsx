@@ -3,7 +3,8 @@ import { ReactElement } from "react";
 interface buttonProps{
     variant : "primary" | "secondary";
     text : string;
-    startIcon : ReactElement
+    startIcon ?: ReactElement;
+    onClick ?: ()=>void
 
 }
 
@@ -14,11 +15,11 @@ const variantClass = {
 
 const defaultTheme = "px-4 py-2 rounded-md flex justify-center items-center "
 
-export default function Button({variant,text,startIcon} :buttonProps){
+export default function Button({variant,text,startIcon,onClick} :buttonProps){
 
     return(
         
-        <button className =  {variantClass[variant] + " "+ defaultTheme}>
+        <button onClick={onClick} className =  {variantClass[variant] + " "+ defaultTheme}>
             <div className="pr-2">
             {startIcon}
             </div>
