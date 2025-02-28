@@ -15,23 +15,19 @@ interface cardProps{
 function TypeIcon({type}:cardProps){
 
    if(type === "yt"){
-    return <YoutubeIcon/>
+    return <YoutubeIcon h={26} w={26}/>
    }
    if(type === "x"){
-    return <XIcon/>
+    return <XIcon h={26} w={26}/>
    }
    if(type === "doc"){
-    return <DocumentIcon/>
+    return <DocumentIcon h={26} w={26}/>
    }
 }
 
 const opts = {
     height: '300',
-    width: '100%',
-    playerVars: {
-      // https://developers.google.com/youtube/player_parameters
-      autoplay: 1,
-    },
+    width: '100%'
   };
   
 function Embeding({type,id}:cardProps){
@@ -52,7 +48,7 @@ function Embeding({type,id}:cardProps){
 export default function Card({title,type,id}:cardProps){
 
     return(
-        <div className=" max-w-72 ml-5 p-4 border border-gray-200 bg-white rounded-lg shadow-md">
+        <div className=" max-w-72  p-4 border border-gray-200 bg-white rounded-lg shadow-md mb-6">
             <div className="flex justify-between"> 
                 <div className="flex justify-center items-center">
                     <div className="pr-2 ">
