@@ -1,9 +1,9 @@
 
 interface inputProps {
     label : string;
-    placeholder:string;
+    placeholder?:string;
     type : string;
-    onChange ?: ()=>void
+    onChange ?: (e:any)=>void
     
 }
 
